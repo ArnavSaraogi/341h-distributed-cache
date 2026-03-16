@@ -14,7 +14,7 @@ func main() {
 	}
 
 	// send message
-	fmt.Fprintf(conn, "Hello!")
+	fmt.Fprintf(conn, "PUT apples banana")
 
 	// read message
 	buf := make([]byte, 1024)
@@ -25,5 +25,14 @@ func main() {
 
 	fmt.Println(string(buf[:n]))
 
+	fmt.Fprintf(conn, "GET apples")
+
+	// read message
+	buf = make([]byte, 1024)
+	n, err = conn.Read(buf)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(string(buf[:n]))
 	conn.Close()
 }
