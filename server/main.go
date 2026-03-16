@@ -10,6 +10,7 @@ import (
 type SafeCache struct {
 	mu    sync.Mutex
 	cache map[string]string
+	//todo -> LRU POLICIES IN THE STRUCT
 }
 
 func handleConnection(conn net.Conn, Cache *SafeCache) {
