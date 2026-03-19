@@ -1,6 +1,8 @@
 package main
 
 import (
+	"container/list"
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -8,9 +10,21 @@ import (
 )
 
 type SafeCache struct {
-	mu    sync.Mutex
-	cache map[string]string
-	//todo -> LRU POLICIES IN THE STRUCT
+	mu sync.Mutex
+
+	cache map[string]*list.Element
+
+	//capacity of cache
+	capacity int
+
+	//doubly LL for LRU Policy -> holds keys so we know which kvp to remove
+	lru_list *list.List
+}
+
+// this what the doubly ll stores in each node asw as the val in the map
+type entry struct {
+	key   string
+	value string
 }
 
 func handleConnection(conn net.Conn, Cache *SafeCache) {
@@ -20,6 +34,9 @@ func handleConnection(conn net.Conn, Cache *SafeCache) {
 		n, err := conn.Read(buf)
 		if err != nil {
 			log.Println(err)
+		}
+		if n == 0 {
+			return
 		}
 		req := string(buf[:n])
 		req = strings.TrimSpace(req)
@@ -39,9 +56,28 @@ func handleConnection(conn net.Conn, Cache *SafeCache) {
 func handlePut(parts []string, Cache *SafeCache) string {
 	Cache.mu.Lock()
 	defer Cache.mu.Unlock()
+
+	//must parse for all strings >=2 not just == 2 (im lazy rn)
 	newkey := strings.TrimSpace(parts[1])
 	newval := strings.TrimSpace(parts[2])
-	Cache.cache[newkey] = newval
+
+	if len(Cache.cache) == Cache.capacity {
+		//prints are for debugging
+		fmt.Println(Cache.cache)
+
+		//fix this buggy eviction here -> maybe some sort of race cond and policy isnt upholding
+		lastElement := Cache.lru_list.Back()
+		e := lastElement.Value.(entry)
+		key := e.key
+		delete(Cache.cache, key)
+		Cache.lru_list.Remove(lastElement)
+
+		//prints are for debugging
+		fmt.Println(Cache.cache)
+	}
+	elem := Cache.lru_list.PushFront(entry{newkey, newval})
+	Cache.cache[newkey] = elem
+	fmt.Println(Cache.cache)
 	return "ok\n"
 }
 
@@ -49,7 +85,11 @@ func handleGet(parts []string, Cache *SafeCache) string {
 	Cache.mu.Lock()
 	defer Cache.mu.Unlock()
 	key := strings.TrimSpace(parts[1])
-	if val, ok := Cache.cache[key]; ok {
+	if e, ok := Cache.cache[key]; ok {
+
+		elem := e.Value.(entry)
+		val := elem.value
+		Cache.lru_list.MoveToFront(e)
 		return val
 	} else {
 		return "no such key"
@@ -58,7 +98,9 @@ func handleGet(parts []string, Cache *SafeCache) string {
 
 func main() {
 	cache := SafeCache{
-		cache: make(map[string]string),
+		cache:    make(map[string]*list.Element),
+		capacity: 2,
+		lru_list: list.New(),
 	}
 	ln, err := net.Listen("tcp", "localhost:8080")
 
