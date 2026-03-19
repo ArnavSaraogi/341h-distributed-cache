@@ -6,6 +6,10 @@ import (
 	"net"
 )
 
+/*
+Note added a bunch of new lines since GPT was saying some bs about how testing is cleaner like this
+since tcp requests can come in byte chunks (probably bullshit to be honest)
+*/
 func main() {
 	// create TCP socket
 	conn, err := net.Dial("tcp", "localhost:8080")

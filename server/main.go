@@ -57,6 +57,7 @@ func handlePut(parts []string, Cache *SafeCache) string {
 	Cache.mu.Lock()
 	defer Cache.mu.Unlock()
 
+	//TODO -> support better parsing (comment below) and invalid requests
 	//must parse for all strings >=2 not just == 2 (im lazy rn)
 	newkey := strings.TrimSpace(parts[1])
 	newval := strings.TrimSpace(parts[2])
@@ -65,7 +66,7 @@ func handlePut(parts []string, Cache *SafeCache) string {
 		//prints are for debugging
 		fmt.Println(Cache.cache)
 
-		//fix this buggy eviction here -> maybe some sort of race cond and policy isnt upholding
+		//evict last elemeent by grabbing it->deleting from cache->deleting from list
 		lastElement := Cache.lru_list.Back()
 		e := lastElement.Value.(entry)
 		key := e.key
@@ -87,6 +88,7 @@ func handleGet(parts []string, Cache *SafeCache) string {
 	key := strings.TrimSpace(parts[1])
 	if e, ok := Cache.cache[key]; ok {
 
+		//getting element->casting into entry struct -> getting val -> moving to front -> return val
 		elem := e.Value.(entry)
 		val := elem.value
 		Cache.lru_list.MoveToFront(e)
