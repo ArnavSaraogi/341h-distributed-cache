@@ -12,6 +12,7 @@ import (
 type SafeCache struct {
 	mu sync.Mutex
 
+	//k -> element(key, value)
 	cache map[string]*list.Element
 
 	//capacity of cache
@@ -57,14 +58,15 @@ func handlePut(parts []string, Cache *SafeCache) string {
 	Cache.mu.Lock()
 	defer Cache.mu.Unlock()
 
-	//TODO -> support better parsing (comment below) and invalid requests
-	//must parse for all strings >=2 not just == 2 (im lazy rn)
+	if len(parts) < 3 {
+		return "invalid request\n"
+	}
+
 	newkey := strings.TrimSpace(parts[1])
-	newval := strings.TrimSpace(parts[2])
+	newval := strings.TrimSpace(strings.Join(parts[2:], " "))
 
 	if len(Cache.cache) == Cache.capacity {
 		//prints are for debugging
-		fmt.Println(Cache.cache)
 
 		//evict last elemeent by grabbing it->deleting from cache->deleting from list
 		lastElement := Cache.lru_list.Back()
@@ -74,7 +76,6 @@ func handlePut(parts []string, Cache *SafeCache) string {
 		Cache.lru_list.Remove(lastElement)
 
 		//prints are for debugging
-		fmt.Println(Cache.cache)
 	}
 	elem := Cache.lru_list.PushFront(entry{newkey, newval})
 	Cache.cache[newkey] = elem
