@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"hash/fnv"
 	"log"
 	"net"
 	"slices"
@@ -14,21 +15,21 @@ since tcp requests can come in byte chunks (probably bullshit to be honest)
 
 //given list of strings ips and a list of keys (index maps 1 : 1) -> binary search (left dominant)
 
-func binSearch(ip_hashes []int, hashed_key int) int {
+func binSearch(cache_hashes []int, hashed_key int) int {
 	//edge case if hashed_key is smallest
-	if hashed_key < slices.Min(ip_hashes) {
-		return len(ip_hashes) - 1
+	if hashed_key < slices.Min(cache_hashes) {
+		return len(cache_hashes) - 1
 	}
 	l := 0
-	r := len(ip_hashes) - 1
+	r := len(cache_hashes) - 1
 	idx := l
 	for l <= r {
 		mid := l + (r-l)/2
-		if ip_hashes[mid] == hashed_key {
+		if cache_hashes[mid] == hashed_key {
 			idx = mid
 			return idx
 		}
-		if ip_hashes[mid] < hashed_key {
+		if cache_hashes[mid] < hashed_key {
 			l = mid + 1
 		} else {
 			r = mid - 1
@@ -36,6 +37,20 @@ func binSearch(ip_hashes []int, hashed_key int) int {
 	}
 	idx = l - 1
 	return max(idx, 0)
+}
+
+func hashKey(s string) uint32 {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(s))
+	return h.Sum32()
+}
+
+func findCache(cache_hashes []int, key string, cache_ips []int) int {
+	hashed_key := hashKey(key)
+
+	cache_idx := binSearch(cache_hashes, int(hashed_key))
+
+	return cache_ips[cache_idx]
 }
 
 func main() {
