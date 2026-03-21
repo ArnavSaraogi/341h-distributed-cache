@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 )
 
 /*
@@ -15,7 +16,7 @@ since tcp requests can come in byte chunks (probably bullshit to be honest)
 
 func binSearch(ip_hashes []int, hashed_key int) int {
 	//edge case if hashed_key is smallest
-	if hashed_key == 0 {
+	if hashed_key < slices.Min(ip_hashes) {
 		return len(ip_hashes) - 1
 	}
 	l := 0
@@ -39,6 +40,7 @@ func binSearch(ip_hashes []int, hashed_key int) int {
 
 func main() {
 
+	//biin search fucntionality test
 	var numbers []int
 
 	numbers = append(numbers, 1)
