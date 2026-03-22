@@ -1,0 +1,64 @@
+package cache
+
+import (
+	"container/list"
+	"sync"
+)
+
+type SafeCache struct {
+	mu sync.Mutex
+
+	//k -> element(key, value)
+	cache map[string]*list.Element
+
+	//capacity of cache
+	capacity int
+
+	//doubly LL for LRU Policy -> holds keys so we know which kvp to remove
+	lru_list *list.List
+}
+
+// this what the doubly ll stores in each node asw as the val in the map
+type entry struct {
+	key   string
+	value string
+}
+
+func NewCache(capacity int) *SafeCache {
+	return &SafeCache{
+		cache:    make(map[string]*list.Element),
+		capacity: capacity,
+		lru_list: list.New(),
+	}
+
+}
+
+// use for puts -> should handle case where cache cap is full for api simplicity
+func CachePut(cache *SafeCache, newkey string, newval string) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	if len(cache.cache) == cache.capacity {
+		lastElement := cache.lru_list.Back()
+		e := lastElement.Value.(entry)
+		key := e.key
+		delete(cache.cache, key)
+		cache.lru_list.Remove(lastElement)
+	}
+	elem := cache.lru_list.PushFront(entry{newkey, newval})
+	cache.cache[newkey] = elem
+}
+
+// use for gets (reads so lru policy moves this elem to front)
+func CacheGet(cache *SafeCache, key string) string {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	if e, ok := cache.cache[key]; ok {
+		//getting element->casting into entry struct -> getting val -> moving to front -> return val
+		elem := e.Value.(entry)
+		val := elem.value
+		cache.lru_list.MoveToFront(e)
+		return val
+	} else {
+		return "key not found"
+	}
+}

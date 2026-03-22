@@ -1,3 +1,3 @@
-module github.com/ArnavSaraogi/341h-distributed-cache
+module distributedcache
 
 go 1.26.1
