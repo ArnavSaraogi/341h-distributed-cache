@@ -18,9 +18,33 @@ func NewRing() *CacheRing {
 	}
 }
 
-// add cache to ring
+// TODO IF TIME: CREATE CONSTRUCTOR THAT TAKES A LIST
 
-// remove cache from ring
+// add cache to ring
+func (ring *CacheRing) AddIP(ip string) {
+	hash := hashIP(ip)
+	i := 0
+	for ; i < len(ring.cache_hashes); i++ {
+		if hash < ring.cache_hashes[i] {
+			break
+		}
+	}
+	ring.cache_hashes = slices.Insert(ring.cache_hashes, i, hash)
+	ring.cache_ips = slices.Insert(ring.cache_ips, i, ip)
+}
+
+// remove specified cache from ring
+func (ring *CacheRing) RemoveIP(ip string) {
+	hash := hashIP(ip)
+	i := 0
+	for ; i < len(ring.cache_hashes); i++ {
+		if hash == ring.cache_hashes[i] {
+			break
+		}
+	}
+	ring.cache_hashes = slices.Delete(ring.cache_hashes, i, i+1)
+	ring.cache_ips = slices.Delete(ring.cache_ips, i, i+1)
+}
 
 // figure out which cache to put it in
 func (ring *CacheRing) FindCache(key string) int {
