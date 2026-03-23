@@ -37,7 +37,7 @@ func NewCache(capacity int) *Cache {
 }
 
 // use for puts -> should handle case where cache cap is full for api simplicity
-func CachePut(cache *Cache, newkey string, newval string) {
+func (cache *Cache) CachePut(newkey string, newval string) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 	if len(cache.mem) == cache.capacity {
@@ -52,7 +52,7 @@ func CachePut(cache *Cache, newkey string, newval string) {
 }
 
 // use for gets (reads so lru policy moves this elem to front)
-func CacheGet(cache *Cache, key string) string {
+func (cache *Cache) CacheGet(key string) string {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 	if e, ok := cache.mem[key]; ok {
