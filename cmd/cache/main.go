@@ -2,6 +2,7 @@ package main
 
 import (
 	"distributedCache/node"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -15,6 +16,8 @@ func main() {
 
 	port_num := os.Args[1] // port number to listen to will be a command line arg
 	socket := "localhost:" + port_num
+
+	fmt.Printf("%s\n", socket)
 
 	node := node.NewNode(Capacity) // initialize new cache node
 
