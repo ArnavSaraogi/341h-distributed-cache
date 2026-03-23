@@ -25,10 +25,12 @@ func NewNode(capacity int) *CacheNode {
 	return &CacheNode{
 		cache: lru.NewCache(capacity),
 	}
+
+	// TODO: INITIALIZE IN CONFIG SERVICE
 }
 
 // handle a connection to put or get
-func (node *CacheNode) handleConnection(conn net.Conn) {
+func (node *CacheNode) HandleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
 		buf := make([]byte, 1024)
