@@ -27,6 +27,7 @@ func NewNode(capacity int) *CacheNode {
 	}
 }
 
+// handle a connection to put or get
 func (node *CacheNode) handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
@@ -53,17 +54,19 @@ func (node *CacheNode) handleConnection(conn net.Conn) {
 	}
 }
 
+// handle a PUT
 func (node *CacheNode) handlePut(parts []string) string {
 	if len(parts) < 3 {
 		return "invalid request\n"
 	}
 	newkey := strings.TrimSpace(parts[1])
 	newval := strings.TrimSpace(strings.Join(parts[2:], " "))
-	lru.CachePut(node.cache, newkey, newval)
+	node.cache.CachePut(newkey, newval)
 	return "ok\n"
 }
 
+// handle a GET
 func (node *CacheNode) handleGet(parts []string) string {
 	key := strings.TrimSpace(parts[1])
-	return lru.CacheGet(node.cache, key)
+	return node.cache.CacheGet(key)
 }
