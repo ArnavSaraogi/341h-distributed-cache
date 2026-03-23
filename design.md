@@ -40,13 +40,6 @@ Server has a cache client responsible for communicating with the caches
 
 The cache client gets it's list of active clients from the configuration service, which it polls every couple of seconds. Configuration service keeps track of health of cache nodes by pinging caches every couple of seconds (\health endpoint). Admin can manually add/kill nodes from here as well.
 
-### Questions
-
-- Should we go straight to sharding or initially have all the caches have the same data -- design would change / wasted work if we start with all caches having the same data
-- Is having duplicate data enough fault tolerance for a cache node going down?
-- How to handle a hot cache? Load balancing?
-  - Could introduce other issues with stale data in the replica caches if primary didn't forward data in time
-
 ## Useful Videos
 
 [System Design Interview - Distributed Cache](https://www.youtube.com/watch?v=iuqZvajTOyA)
@@ -57,3 +50,25 @@ The cache client gets it's list of active clients from the configuration service
 [What is Distributed Caching?](https://www.youtube.com/watch?v=C8eIaEBPmw8)
 
 - Overview of distributed caching
+
+### Project Files
+
+```
+distributed-cache/
+├── go.mod
+├── cmd/
+│   ├── cache/
+│   │   └── main.go
+│   ├── config/
+│   │   └── main.go
+│   └── client/
+│       └── main.go
+├── lru/
+│   └── lru.go            // LRU map, eviction; cache data structure (no networking stuff); need to make thread-safe?
+├── node/
+│   └── node.go           // TCP server, replication, wraps store and handles the networking stuff
+├── ring/
+│   └── ring.go           // consistent hashing, virtual nodes, replica selection
+└── config_service
+    └── config_service.go
+```

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"distributedcache/cache"
+	"distributedCache/cache"
 	"log"
 	"net"
 	"strings"
