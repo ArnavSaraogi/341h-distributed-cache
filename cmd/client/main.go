@@ -6,9 +6,11 @@ import (
 	"net"
 )
 
+/*
+// TODO: GET LIST OF CACHES FROM CONFIG SERVICE via endpoint
+client should requets list every 10 seconds
+*/
 func main() {
-	// TODO: GET LIST OF CACHES FROM CONFIG SERVICE
-	ips := []string{}
 
 	// add caches to the ring
 	ring := cache_ring.NewRing()
