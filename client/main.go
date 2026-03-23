@@ -8,11 +8,6 @@ import (
 	"slices"
 )
 
-/*
-Note added a bunch of new lines since GPT was saying some bs about how testing is cleaner like this
-since tcp requests can come in byte chunks (probably bullshit to be honest)
-*/
-
 //given list of strings ips and a list of keys (index maps 1 : 1) -> binary search (left dominant)
 
 func binSearch(cache_hashes []int, hashed_key int) int {
@@ -50,7 +45,8 @@ func findCache(cache_hashes []int, key string, cache_ips []int) int {
 
 	cache_idx := binSearch(cache_hashes, int(hashed_key))
 
-	return cache_ips[cache_idx]
+	targ_ip := cache_ips[cache_idx]
+	return targ_ip
 }
 
 func main() {

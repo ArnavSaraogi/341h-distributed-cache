@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// set an arbitrary capacity for now
+// set an arbitrary capacity for now with example cache
 var Cache = cache.NewCache(100)
 
 func handleConnection(conn net.Conn) {

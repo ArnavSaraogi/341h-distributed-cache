@@ -16,6 +16,9 @@ type SafeCache struct {
 
 	//doubly LL for LRU Policy -> holds keys so we know which kvp to remove
 	lru_list *list.List
+
+	//cache should have a unique id on creation (cache ip hash) -> maybe?
+	cache_ip int
 }
 
 // this what the doubly ll stores in each node asw as the val in the map
@@ -58,6 +61,7 @@ func CacheGet(cache *SafeCache, key string) string {
 		val := elem.value
 		cache.lru_list.MoveToFront(e)
 		return val
+		//TODO -> instead of returning key not found, look in db and then update cache to have that key
 	} else {
 		return "key not found"
 	}
