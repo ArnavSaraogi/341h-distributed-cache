@@ -1,4 +1,4 @@
-package cachering
+package cache_ring
 
 import (
 	"hash/fnv"
