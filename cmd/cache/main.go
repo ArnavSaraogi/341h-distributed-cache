@@ -4,13 +4,19 @@ import (
 	"distributedCache/node"
 	"log"
 	"net"
+	"os"
 )
 
 const Capacity = 100
 
 func main() {
-	node := node.NewNode(Capacity)
-	ln, err := net.Listen("tcp", "localhost::8080")
+
+	port_num := os.Args[1] // port number to listen to will be a command line arg
+	socket := "localhost:" + port_num
+
+	node := node.NewNode(Capacity) // initialize new cache node
+
+	ln, err := net.Listen("tcp", socket)
 	if err != nil {
 		log.Fatalln(err)
 	}
