@@ -3,6 +3,7 @@ package cache_ring
 import (
 	"hash/fnv"
 	"slices"
+	"strings"
 )
 
 type CacheRing struct {
@@ -46,9 +47,12 @@ func (ring *CacheRing) RemoveIP(ip string) {
 }
 
 // figure out which cache to put it in
-func (ring *CacheRing) FindCache(key string) int {
+func (ring *CacheRing) FindCache(key string) string {
+	key = strings.Fields(key)[1]
 	hashed_key := hashIP(key)
-	return ring.binSearch(hashed_key)
+	targ_idx := ring.binSearch(hashed_key)
+	cache_ip := ring.cache_ips[targ_idx]
+	return cache_ip
 }
 
 // ghetto ass binary search
