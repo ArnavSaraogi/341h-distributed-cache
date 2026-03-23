@@ -5,15 +5,31 @@ import (
 	"slices"
 )
 
-// have list of cache ips
-
 type CacheRing struct {
-	cache_hashes []int
-	cache_ips    []int
+	cache_hashes []uint32
+	cache_ips    []string
 }
 
-// ghetto ass bin search
-func (ring *CacheRing) binSearch(hashed_key int) int {
+// create empty ring
+func NewRing() *CacheRing {
+	return &CacheRing{
+		cache_hashes: []uint32{},
+		cache_ips:    []string{},
+	}
+}
+
+// add cache to ring
+
+// remove cache from ring
+
+// figure out which cache to put it in
+func (ring *CacheRing) FindCache(key string) int {
+	hashed_key := hashIP(key)
+	return ring.binSearch(hashed_key)
+}
+
+// ghetto ass binary search
+func (ring *CacheRing) binSearch(hashed_key uint32) int {
 	//edge case if hashed_key is smallest
 	if hashed_key < slices.Min(ring.cache_hashes) {
 		return len(ring.cache_hashes) - 1
@@ -37,16 +53,8 @@ func (ring *CacheRing) binSearch(hashed_key int) int {
 	return max(idx, 0)
 }
 
-func (ring *CacheRing) hashKey(s string) uint32 {
+func hashIP(s string) uint32 {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(s)) // write to buffer
 	return h.Sum32()
-}
-
-func (ring *CacheRing) FindCache(key string) int {
-	hashed_key := ring.hashKey(key)
-
-	cache_idx := ring.binSearch(int(hashed_key))
-
-	return ring.cache_ips[cache_idx]
 }
