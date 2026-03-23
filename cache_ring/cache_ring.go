@@ -35,10 +35,9 @@ func (ring *CacheRing) AddIP(ip string) {
 
 // remove specified cache from ring
 func (ring *CacheRing) RemoveIP(ip string) {
-	hash := hashIP(ip)
 	i := 0
-	for ; i < len(ring.cache_hashes); i++ {
-		if hash == ring.cache_hashes[i] {
+	for ; i < len(ring.cache_ips); i++ {
+		if ip == ring.cache_ips[i] {
 			break
 		}
 	}
