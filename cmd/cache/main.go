@@ -2,7 +2,6 @@ package main
 
 import (
 	"distributedCache/node"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -12,32 +11,28 @@ import (
 
 const Capacity = 100
 
-/*
- */
 func main() {
 
 	port_num := os.Args[1] // port number to listen to will be a command line arg
 	socket := ":" + port_num
 
-	fmt.Printf("%s\n", socket)
-
 	node := node.NewNode(Capacity) // initialize new cache node
 
 	// this node listents to tcp request on this specific socket
 	ln, err := net.Listen("tcp", socket)
-
 	if err != nil {
 		log.Fatalln(err)
 	}
-	//node gets init in config
+	defer ln.Close()
+
+	// node gets init in config
 	_, err = http.Post("http://localhost:8080/init", "text/plain", nil)
 	if err != nil {
 		panic(err)
 	}
 
-	//hit endpoint every 10 seconds ---> health update
+	// hit endpoint every 10 seconds ---> health update
 	go sendIp()
-	defer ln.Close()
 	for {
 		// wait for incoming client connections
 		conn, err := ln.Accept()
