@@ -10,6 +10,7 @@ import (
 )
 
 const Capacity = 100
+const ConfigIP = "http://localhost:8080"
 
 func main() {
 
@@ -26,12 +27,12 @@ func main() {
 	defer ln.Close()
 
 	// node gets init in config
-	_, err = http.Post("http://localhost:8080/init", "text/plain", nil)
+	_, err = http.Post(ConfigIP+"/init", "text/plain", nil)
 	if err != nil {
 		panic(err)
 	}
 
-	// hit endpoint every 10 seconds ---> health update
+	// hearbeating
 	go sendIp()
 	for {
 		// wait for incoming client connections
@@ -45,11 +46,12 @@ func main() {
 	}
 }
 
+// heartbeating to config service
 func sendIp() {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	for range ticker.C {
-		_, err := http.Post("http://localhost:8080/heartbeat", "text/plain", nil)
+		_, err := http.Post(ConfigIP+"/heartbeat", "text/plain", nil)
 		if err != nil {
 			panic(err)
 		}

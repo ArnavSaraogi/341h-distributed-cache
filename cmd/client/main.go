@@ -18,12 +18,9 @@ func main() {
 	go getIps() // goroutine to get the ips, runs continously
 
 	request := "GET sanjiv"
-	/*
-		1. getc correct cache ip for incoming req
-		2. open connection to cache -> pass in cache ip as param
-		3. interact with cache
-	*/
+
 	ip := ring.FindCache(request)
+
 	conn, err := net.Dial("tcp", ip)
 	if err != nil {
 		log.Fatalln(err)
@@ -34,6 +31,7 @@ func main() {
 	}
 }
 
+// thread that periodically gets IP list from config service
 func getIps() {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
