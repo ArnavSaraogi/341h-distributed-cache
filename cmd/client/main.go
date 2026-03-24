@@ -19,9 +19,10 @@ var logger = log.New(os.Stderr, "[CACHE CLIENT]: ", log.Ltime)
 const ConfigIP = "http://localhost:8080"
 
 var ring *cache_ring.CacheRing
+
 var ringInitialized bool
-var ringCv sync.Cond
-var ringMtx sync.Mutex
+var ringMutex sync.Mutex
+var ringCv = sync.NewCond(&ringMutex)
 
 func main() {
 	logger.Printf("Started up cache client\n")
@@ -33,13 +34,13 @@ func main() {
 	go getIps() // goroutine to get the ips, runs continously
 
 	// have to wait for ring to be initialized before we can make requests to caches
-	ringMtx.Lock()
+	ringCv.L.Lock()
 	for !ringInitialized {
 		ringCv.Wait()
 	}
-	ringMtx.Unlock()
+	ringCv.L.Unlock()
 
-	request := "GET sanjiv"
+	request := "GET jayleen"
 	ip := ring.FindCache(request)
 
 	logger.Printf("Sending request '%s' to ip %s\n", request, ip)
@@ -97,9 +98,9 @@ func getIps() {
 
 		logger.Printf("Updated ip list: %v\n", ips)
 
-		ringMtx.Lock()
+		ringCv.L.Lock()
 		ringInitialized = true
 		ringCv.Broadcast()
-		ringMtx.Unlock()
+		ringCv.L.Unlock()
 	}
 }

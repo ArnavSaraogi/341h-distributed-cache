@@ -17,8 +17,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
+
+func init() {
+	godotenv.Load() // loads .env automatically
+}
 
 // logger
 var logger = log.New(os.Stderr, "[CACHE SERVER]: ", log.Ltime)
@@ -26,8 +31,6 @@ var logger = log.New(os.Stderr, "[CACHE SERVER]: ", log.Ltime)
 type CacheNode struct {
 	cache *lru.Cache
 }
-
-var base_url = os.Getenv("DATABASE_URL")
 
 // initialize node
 func NewNode(capacity int) *CacheNode {
@@ -83,16 +86,16 @@ func (node *CacheNode) handleGet(parts []string) string {
 	key := strings.TrimSpace(parts[1])
 	cand := node.cache.CacheGet(key)
 	if cand == "" {
-		db, err := sql.Open("postgres", os.Getenv(base_url))
+		db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer db.Close()
-		err = db.QueryRow("SELECT value FROM test_db WHERE key = $key", key).Scan(&key)
+		err = db.QueryRow("SELECT value FROM test_db WHERE key = $1", key).Scan(&cand)
 		if err != nil {
 			log.Fatal(err)
 		}
-		cand = key
+		node.handlePut(parts)
 	}
 	return cand
 }

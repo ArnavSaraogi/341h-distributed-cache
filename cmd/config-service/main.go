@@ -20,7 +20,7 @@ func getAddr(r *http.Request) string {
 	body, _ := io.ReadAll(r.Body)
 	port := strings.TrimSpace(string(body)) // port from the cache server itself
 
-	addr := host + ":" + port
+	addr := "[" + host + "]" + ":" + port // HARDCODED BRACKETS SINCE ON SAME MACHINE FOR NOW
 
 	return addr
 }
