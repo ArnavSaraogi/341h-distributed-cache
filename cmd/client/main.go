@@ -8,20 +8,28 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"time"
 )
+
+// logger
+var logger = log.New(os.Stderr, "[CACHE CLIENT]: ", log.Ltime)
 
 const ConfigIP = "http://localhost:8080"
 
 var ring *cache_ring.CacheRing
 
 func main() {
+	logger.Printf("Started up cache client\n")
+
 	ring = cache_ring.NewRing() // thread safe ring for consistent hashing
 
 	go getIps() // goroutine to get the ips, runs continously
 
 	request := "GET sanjiv"
 	ip := ring.FindCache(request)
+
+	logger.Printf("Sending request '%s' to ip %s\n", request, ip)
 
 	// start connection with cache
 	conn, err := net.Dial("tcp", ip)
@@ -36,12 +44,14 @@ func main() {
 	}
 
 	// get response from cache
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
+	response := make([]byte, 1024)
+	n, err := conn.Read(response)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(string(buf[:n]))
+	fmt.Println(string(response[:n]))
+
+	logger.Printf("Got response '%s' from ip %s\n", response, ip)
 }
 
 // thread that periodically gets IP list from config service
@@ -71,5 +81,7 @@ func getIps() {
 		for i := 0; i < len(ips); i++ {
 			ring.AddIP((ips)[i])
 		}
+
+		logger.Printf("Updated ip list: %v\n", ips)
 	}
 }

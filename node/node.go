@@ -20,6 +20,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// logger
+var logger = log.New(os.Stderr, "[CACHE SERVER]: ", log.Ltime)
+
 type CacheNode struct {
 	cache *lru.Cache
 }
@@ -31,35 +34,37 @@ func NewNode(capacity int) *CacheNode {
 	return &CacheNode{
 		cache: lru.NewCache(capacity),
 	}
-
-	// TODO: INITIALIZE IN CONFIG SERVICE
 }
 
 // handle a connection to put or get
 func (node *CacheNode) HandleConnection(conn net.Conn) {
 	defer conn.Close()
-	for {
-		buf := make([]byte, 1024)
-		n, err := conn.Read(buf)
-		if err != nil {
-			log.Println(err)
-		}
-		if n == 0 {
-			return
-		}
-		req := string(buf[:n])
-		req = strings.TrimSpace(req)
-		parts := strings.Fields(req)
-		cmd := parts[0]
-		if cmd == "GET" {
-			response := node.handleGet(parts)
-			conn.Write([]byte(response))
-		}
-		if cmd == "PUT" {
-			response := node.handlePut(parts)
-			conn.Write([]byte(response))
-		}
+
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+
+	if err != nil {
+		log.Println(err)
 	}
+	if n == 0 {
+		return
+	}
+
+	req := string(buf[:n])
+	req = strings.TrimSpace(req)
+	parts := strings.Fields(req)
+	cmd := parts[0]
+
+	if cmd == "GET" {
+		response := node.handleGet(parts)
+		conn.Write([]byte(response))
+	}
+	if cmd == "PUT" {
+		response := node.handlePut(parts)
+		conn.Write([]byte(response))
+	}
+
+	logger.Printf("Handled request %s", cmd)
 }
 
 // handle a PUT
