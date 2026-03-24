@@ -1,5 +1,11 @@
 package main
 
+import (
+	"encoding/json"
+	"net"
+	"net/http"
+)
+
 /*
 also endpoint for starting up a cache
 */
@@ -9,3 +15,21 @@ also endpoint for starting up a cache
 2. keep track of active ips from the information hitting the http endpoint
 3. send the list via an async function to client
 */
+
+var ips []string
+
+func cacheHandler(w http.ResponseWriter, r *http.Request) {
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	ips = append(ips, ip)
+}
+
+func main() {
+	http.HandleFunc("/ip_addresses", cacheHandler)
+	http.HandleFunc("/GET/ips", clientHandler)
+	http.ListenAndServe(":8080", nil)
+
+}
+func clientHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(ips)
+	//comes back to client as ["1.2.3.4", "5.6.7.8"]
+}
