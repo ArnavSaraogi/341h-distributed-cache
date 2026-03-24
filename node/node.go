@@ -88,7 +88,7 @@ func (node *CacheNode) handleGet(parts []string) string {
 			log.Fatal(err)
 		}
 		defer db.Close()
-		err = db.QueryRow("SELECT name FROM users WHERE id = $1", 1).Scan(&key)
+		err = db.QueryRow("SELECT value FROM test_db WHERE key = $key", key).Scan(&key)
 		if err != nil {
 			log.Fatal(err)
 		}
