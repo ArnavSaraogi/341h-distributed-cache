@@ -2,16 +2,8 @@ package lru
 
 import (
 	"container/list"
-	"database/sql"
-	"fmt"
-	"log"
-	"os"
 	"sync"
-
-	_ "github.com/lib/pq"
 )
-
-var base_url = os.Getenv("DATABASE_URL")
 
 type Cache struct {
 	mu sync.Mutex
@@ -70,16 +62,6 @@ func (cache *Cache) CacheGet(key string) string {
 		cache.lru_list.MoveToFront(e)
 		return val
 	} else {
-		db, err := sql.Open("postgres", os.Getenv(base_url))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer db.Close()
-		err = db.QueryRow("SELECT name FROM users WHERE id = $1", 1).Scan(&key)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(key)
-		return key
+		return ""
 	}
 }
