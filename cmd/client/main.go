@@ -13,7 +13,7 @@ import (
 var ring *cache_ring.CacheRing
 
 func main() {
-	ring = cache_ring.NewRing()
+	ring = cache_ring.NewRing() // thread safe ring for consistent hashing
 
 	go getIps() // goroutine to get the ips, runs continously
 
@@ -55,7 +55,8 @@ func getIps() {
 			panic(err)
 		}
 
-		// add caches to the ring
+		// add caches to the ring; O(n^2) :(
+		ring.ClearRing()
 		for i := 0; i < len(ips); i++ {
 			ring.AddIP((ips)[i])
 		}
