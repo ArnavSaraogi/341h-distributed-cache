@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const ConfigIP = "http://localhost:8080"
+
 var ring *cache_ring.CacheRing
 
 func main() {
@@ -40,7 +42,7 @@ func getIps() {
 		ips := []string{}
 
 		// get updated list from config service
-		res, err := http.Get("http://localhost:8080/ips") // storing config service on same machine for now
+		res, err := http.Get(ConfigIP + "/ips") // storing config service on same machine for now
 		if err != nil {
 			panic(err)
 		}
