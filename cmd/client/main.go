@@ -3,6 +3,7 @@ package main
 import (
 	"distributedCache/cache_ring"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -31,6 +32,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(buf[:n]))
+
 }
 
 // thread that periodically gets IP list from config service
