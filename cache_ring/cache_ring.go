@@ -75,7 +75,7 @@ func (ring *CacheRing) FindCache(key string) string {
 }
 
 func (ring *CacheRing) binSearch(hashed_key uint32) int {
-	//edge case if hashed_key is smallest
+	// edge case if hashed_key is smallest
 	if hashed_key < slices.Min(ring.cache_hashes) {
 		return len(ring.cache_hashes) - 1
 	}

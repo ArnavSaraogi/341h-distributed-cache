@@ -21,25 +21,27 @@ func main() {
 	go getIps() // goroutine to get the ips, runs continously
 
 	request := "GET sanjiv"
-
 	ip := ring.FindCache(request)
 
+	// start connection with cache
 	conn, err := net.Dial("tcp", ip)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	// send request through connection
 	_, err = conn.Write([]byte(request))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// get response from cache
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Println(string(buf[:n]))
-
 }
 
 // thread that periodically gets IP list from config service
