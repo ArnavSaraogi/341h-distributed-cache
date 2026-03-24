@@ -25,7 +25,7 @@ func cacheHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/ip_addresses", cacheHandler)
-	http.HandleFunc("/GET/ips", clientHandler)
+	http.HandleFunc("/ips", clientHandler)
 	http.ListenAndServe(":8080", nil)
 
 }
