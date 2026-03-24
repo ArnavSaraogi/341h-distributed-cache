@@ -10,17 +10,13 @@ import (
 	"time"
 )
 
-/*
-// TODO: GET LIST OF CACHES FROM CONFIG SERVICE via endpoint
-client should requets list every 10 seconds
-*/
 func main() {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	var ips []string
 	go func() {
 		for range ticker.C {
-			getIps(ips)
+			getIps(&ips)
 		}
 	}()
 	// add caches to the ring
@@ -45,20 +41,17 @@ func main() {
 	}
 }
 
-func getIps(ips []string) {
-	for {
-		res, err := http.Get("http://localhost:8080/ips")
-		if err != nil {
-			panic(err)
-		}
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			panic(err)
-		}
-		err = json.Unmarshal(body, &ips)
-		if err != nil {
-			panic(err)
-		}
-		time.Sleep(10)
+func getIps(ips *[]string) {
+	res, err := http.Get("http://localhost:8080/ips")
+	if err != nil {
+		panic(err)
+	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(body, ips)
+	if err != nil {
+		panic(err)
 	}
 }
