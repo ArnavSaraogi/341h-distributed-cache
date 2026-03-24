@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"sync"
 )
 
 /*
@@ -17,10 +18,14 @@ also endpoint for starting up a cache
 */
 
 var ips []string
+var mutex sync.Mutex
 
+// heartbeating
 func cacheHandler(w http.ResponseWriter, r *http.Request) {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	mutex.Lock()
 	ips = append(ips, ip)
+	mutex.Unlock()
 }
 
 func main() {
@@ -30,6 +35,8 @@ func main() {
 
 }
 func clientHandler(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
 	json.NewEncoder(w).Encode(ips)
+	mutex.Unlock()
 	//comes back to client as ["1.2.3.4", "5.6.7.8"]
 }
