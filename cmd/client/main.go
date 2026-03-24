@@ -14,11 +14,13 @@ func main() {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	var ips []string
+
 	go func() {
 		for range ticker.C {
 			getIps(&ips)
 		}
 	}()
+
 	// add caches to the ring
 	ring := cache_ring.NewRing()
 	for i := 0; i < len(ips); i++ {
@@ -42,7 +44,7 @@ func main() {
 }
 
 func getIps(ips *[]string) {
-	res, err := http.Get("http://localhost:8080/ips")
+	res, err := http.Get("http://localhost:8080/ips") // storing config service on same machine for now
 	if err != nil {
 		panic(err)
 	}

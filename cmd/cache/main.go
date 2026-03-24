@@ -15,13 +15,13 @@ const Capacity = 100
 func main() {
 
 	port_num := os.Args[1] // port number to listen to will be a command line arg
-	socket := "localhost:" + port_num
+	socket := ":" + port_num
 
 	fmt.Printf("%s\n", socket)
 
 	node := node.NewNode(Capacity) // initialize new cache node
 
-	//this node listents to tcp request on this specific socket
+	// this node listents to tcp request on this specific socket
 	ln, err := net.Listen("tcp", socket)
 
 	if err != nil {
