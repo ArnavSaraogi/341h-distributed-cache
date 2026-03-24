@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
+	"time"
 )
 
 const Capacity = 100
@@ -27,10 +29,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	/*
-		1. make an async function that sends socket to an endpoint in config service
-		via a post request (request body is socket)
-	*/
+	//node gets init in config
+	_, err = http.Post("http://localhost:8080/init", "text/plain", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	//hit endpoint every 10 seconds ---> health update
+	go sendIp()
 	defer ln.Close()
 	for {
 		// wait for incoming client connections
@@ -41,5 +47,16 @@ func main() {
 
 		// handle the connection
 		go node.HandleConnection(conn)
+	}
+}
+
+func sendIp() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		_, err := http.Post("http://localhost:8080/heartbeat", "text/plain", nil)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
