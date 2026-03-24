@@ -11,6 +11,13 @@ import (
 also endpoint for starting up a cache
 */
 
+func handleCacheStart(w http.ResponseWriter, r *http.Request) {
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	mutex.Lock()
+	ips = append(ips, ip)
+	mutex.Unlock()
+}
+
 /*
 1. set up http endpoint that cache server function can make post reqeust to
 2. keep track of active ips from the information hitting the http endpoint
@@ -21,7 +28,7 @@ var ips []string
 var mutex sync.Mutex
 
 // heartbeating
-func cacheHandler(w http.ResponseWriter, r *http.Request) {
+func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 	mutex.Lock()
 	ips = append(ips, ip)
@@ -29,7 +36,8 @@ func cacheHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/ip_addresses", cacheHandler)
+	http.HandleFunc("/init", handleCacheStart)
+	http.HandleFunc("/heartbeat", handleHeartBeat)
 	http.HandleFunc("/ips", clientHandler)
 	http.ListenAndServe(":8080", nil)
 
