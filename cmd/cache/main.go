@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// hearbeating
-	go sendIp()
+	go heartbeat(port)
 
 	// listents to tcp request on this specific port
 	ln, err := net.Listen("tcp", ":"+port)
@@ -53,13 +53,14 @@ func main() {
 }
 
 // heartbeating to config service
-func sendIp() {
+func heartbeat(port string) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	for range ticker.C {
-		_, err := http.Post(ConfigIP+"/heartbeat", "text/plain", nil)
+		_, err := http.Post(ConfigIP+"/heartbeat", "text/plain", strings.NewReader(port))
 		if err != nil {
 			panic(err)
 		}
+		logger.Printf("sent heartbeat from port %s", port)
 	}
 }

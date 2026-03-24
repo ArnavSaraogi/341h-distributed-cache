@@ -14,14 +14,21 @@ import (
 // logger
 var logger = log.New(os.Stderr, "[CONFIG SERVICE]: ", log.Ltime)
 
-// HANDLERS
-// for /init -- adds an ip to its list of known ips
-func handleCacheStart(w http.ResponseWriter, r *http.Request) {
+// HELPERS
+func getAddr(r *http.Request) string {
 	host, _, _ := net.SplitHostPort(r.RemoteAddr) // IP is correct, port is not
 	body, _ := io.ReadAll(r.Body)
 	port := strings.TrimSpace(string(body)) // port from the cache server itself
 
 	addr := host + ":" + port
+
+	return addr
+}
+
+// HANDLERS
+// for /init -- adds an ip to its list of known ips
+func handleCacheStart(w http.ResponseWriter, r *http.Request) {
+	addr := getAddr(r)
 
 	mutex.Lock()
 	ips = append(ips, addr)
@@ -39,6 +46,8 @@ func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	- keep a timer/timestamp for each ip's last heartbeat
 	- update timestamp on heartbeat
 	*/
+	addr := getAddr(r)
+	logger.Printf("Heartbeat from ip %s\n", addr)
 }
 
 // for /ips -- returns list of cache ips
