@@ -10,15 +10,21 @@ Networking stuff:
 */
 
 import (
+	"database/sql"
 	"distributedCache/lru"
 	"log"
 	"net"
+	"os"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 type CacheNode struct {
 	cache *lru.Cache
 }
+
+var base_url = os.Getenv("DATABASE_URL")
 
 // initialize node
 func NewNode(capacity int) *CacheNode {
@@ -70,5 +76,18 @@ func (node *CacheNode) handlePut(parts []string) string {
 // handle a GET
 func (node *CacheNode) handleGet(parts []string) string {
 	key := strings.TrimSpace(parts[1])
-	return node.cache.CacheGet(key)
+	cand := node.cache.CacheGet(key)
+	if cand == "" {
+		db, err := sql.Open("postgres", os.Getenv(base_url))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		err = db.QueryRow("SELECT name FROM users WHERE id = $1", 1).Scan(&key)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cand = key
+	}
+	return cand
 }
