@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -15,13 +17,17 @@ var logger = log.New(os.Stderr, "[CONFIG SERVICE]: ", log.Ltime)
 // HANDLERS
 // for /init -- adds an ip to its list of known ips
 func handleCacheStart(w http.ResponseWriter, r *http.Request) {
-	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	host, _, _ := net.SplitHostPort(r.RemoteAddr) // IP is correct, port is not
+	body, _ := io.ReadAll(r.Body)
+	port := strings.TrimSpace(string(body)) // port from the cache server itself
+
+	addr := host + ":" + port
 
 	mutex.Lock()
-	ips = append(ips, ip)
+	ips = append(ips, addr)
 	mutex.Unlock()
 
-	logger.Printf("Added IP %s in cache IP list\n", ip)
+	logger.Printf("Added IP %s in cache IP list\n", addr)
 }
 
 var ips []string

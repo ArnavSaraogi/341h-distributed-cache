@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -17,15 +18,14 @@ const ConfigIP = "http://localhost:8080"
 
 func main() {
 
-	port_num := os.Args[1] // port number to listen to will be a command line arg
-	socket := ":" + port_num
+	port := os.Args[1] // port number to listen to will be a command line arg
 
-	logger.Printf("Started up cache server %s\n", socket)
+	logger.Printf("Started up cache server with port %s\n", port)
 
 	node := node.NewNode(Capacity) // initialize new cache node
 
 	// node gets init in config
-	_, err := http.Post(ConfigIP+"/init", "text/plain", nil)
+	_, err := http.Post(ConfigIP+"/init", "text/plain", strings.NewReader(port))
 	if err != nil {
 		panic(err)
 	}
@@ -33,8 +33,8 @@ func main() {
 	// hearbeating
 	go sendIp()
 
-	// listents to tcp request on this specific socket
-	ln, err := net.Listen("tcp", socket)
+	// listents to tcp request on this specific port
+	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalln(err)
 	}
