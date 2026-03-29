@@ -6,7 +6,7 @@ We're creating a distributed cache in Go. Caching is important when you want to 
 
 We've implemented the basic caching and retrival from a distributed cache for GET requests.
 
-(Diagram)[https://excalidraw.com/#json=beHIaW9eBQzF5A9KRSq1H,5HtlFnZ_RGS1sRn6Lp0lMw]
+(Diagram)[https://excalidraw.com/#json=0uQ7Pn6NPyryk9aCqApGN,oX7MwPmCx_ceCaSW7uQGSQ]
 
 - Created the LRU cache and a wrapper for networking capability
 - Created configuration service that maintains a list of active cache IPs
