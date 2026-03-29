@@ -3,7 +3,6 @@ package main
 import (
 	"distributedCache/cache_ring"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -40,32 +39,35 @@ func main() {
 	}
 	ringCv.L.Unlock()
 
-	request := "GET jayleen"
-	ip := ring.FindCache(request)
+	// requests
+	requests := []string{"GET jayleen", "GET sanjiv", "GET jesse", "GET jayleen"}
 
-	logger.Printf("Sending request '%s' to ip %s\n", request, ip)
+	// sending requests to respective caches
+	for _, request := range requests {
+		start := time.Now()
 
-	// start connection with cache
-	conn, err := net.Dial("tcp", ip)
-	if err != nil {
-		log.Fatalln(err)
+		ip := ring.FindCache(request)
+		logger.Printf("Sending request '%s' to ip %s\n", request, ip)
+
+		conn, err := net.Dial("tcp", ip)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		_, err = conn.Write([]byte(request))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		response := make([]byte, 1024)
+		n, err := conn.Read(response)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		logger.Printf("Got response '%s' from ip %s (took %v)\n", string(response[:n]), ip, time.Since(start))
+
+		conn.Close()
 	}
-
-	// send request through connection
-	_, err = conn.Write([]byte(request))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// get response from cache
-	response := make([]byte, 1024)
-	n, err := conn.Read(response)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println(string(response[:n]))
-
-	logger.Printf("Got response '%s' from ip %s\n", response, ip)
 }
 
 // thread that periodically gets IP list from config service

@@ -56,6 +56,10 @@ func (node *CacheNode) HandleConnection(conn net.Conn) {
 	req := string(buf[:n])
 	req = strings.TrimSpace(req)
 	parts := strings.Fields(req)
+	if len(parts) == 0 {
+		return
+	}
+
 	cmd := parts[0]
 
 	if cmd == "GET" {
@@ -85,17 +89,21 @@ func (node *CacheNode) handlePut(parts []string) string {
 func (node *CacheNode) handleGet(parts []string) string {
 	key := strings.TrimSpace(parts[1])
 	cand := node.cache.CacheGet(key)
+
+	// handle cache miss
 	if cand == "" {
 		db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		defer db.Close()
 		err = db.QueryRow("SELECT value FROM test_db WHERE key = $1", key).Scan(&cand)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
-		node.handlePut(parts)
+
+		// put in cache
+		node.cache.CachePut(key, cand)
 	}
 	return cand
 }

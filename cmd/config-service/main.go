@@ -47,7 +47,7 @@ func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	- update timestamp on heartbeat
 	*/
 	addr := getAddr(r)
-	logger.Printf("Heartbeat from ip %s\n", addr)
+	logger.Printf("Heartbeat from IP %s\n", addr)
 }
 
 // for /ips -- returns list of cache ips
@@ -55,6 +55,7 @@ func clientHandler(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	json.NewEncoder(w).Encode(ips)
 	mutex.Unlock()
+	logger.Printf("Sent IP list to client\n")
 }
 
 // ENTRY
