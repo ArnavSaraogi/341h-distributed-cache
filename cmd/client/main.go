@@ -12,9 +12,6 @@ import (
 	"time"
 )
 
-// logger
-var logger = log.New(os.Stderr, "[CACHE CLIENT]: ", log.Ltime)
-
 const ConfigIP = "http://localhost:8080"
 
 var ring *cache_ring.CacheRing
@@ -26,7 +23,7 @@ var ringCv = sync.NewCond(&ringMutex)
 func main() {
 	port := os.Args[1] // port number to listen on
 
-	logger.Printf("Started up cache client on port %s\n", port)
+	log.Printf("Started up cache client on port %s\n", port)
 
 	ring = cache_ring.NewRing() // thread safe ring for consistent hashing
 
@@ -46,7 +43,7 @@ func main() {
 	// HTTP server for receiving commands
 	http.HandleFunc("/command", handleCommand)
 
-	logger.Printf("Listening for commands on port %s\n", port)
+	log.Printf("Listening for commands on port %s\n", port)
 	http.ListenAndServe(":"+port, nil)
 }
 
@@ -70,11 +67,11 @@ func handleCommand(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	ip := ring.FindCache(req.Command)
-	logger.Printf("Sending request '%s' to ip %s\n", req.Command, ip)
+	log.Printf("Sending request '%s' to ip %s\n", req.Command, ip)
 
 	conn, err := net.Dial("tcp", ip)
 	if err != nil {
-		logger.Printf("Failed to connect to %s: %v\n", ip, err)
+		log.Printf("Failed to connect to %s: %v\n", ip, err)
 		http.Error(w, "failed to connect to cache node "+ip+": "+err.Error(), http.StatusBadGateway)
 		return
 	}
@@ -82,7 +79,7 @@ func handleCommand(w http.ResponseWriter, r *http.Request) {
 
 	_, err = conn.Write([]byte(req.Command))
 	if err != nil {
-		logger.Printf("Failed to send to %s: %v\n", ip, err)
+		log.Printf("Failed to send to %s: %v\n", ip, err)
 		http.Error(w, "failed to send command: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -90,13 +87,13 @@ func handleCommand(w http.ResponseWriter, r *http.Request) {
 	response := make([]byte, 4096)
 	n, err := conn.Read(response)
 	if err != nil {
-		logger.Printf("Failed to read from %s: %v\n", ip, err)
+		log.Printf("Failed to read from %s: %v\n", ip, err)
 		http.Error(w, "failed to read response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	elapsed := time.Since(start)
-	logger.Printf("Got response '%s' from ip %s (took %v)\n", string(response[:n]), ip, elapsed)
+	log.Printf("Got response '%s' from ip %s (took %v)\n", string(response[:n]), ip, elapsed)
 
 	json.NewEncoder(w).Encode(map[string]string{
 		"target":   ip,
@@ -132,7 +129,7 @@ func getIps() {
 			ring.AddIP((ips)[i])
 		}
 
-		logger.Printf("Updated ip list: %v\n", ips)
+		log.Printf("Updated ip list: %v\n", ips)
 
 		ringCv.L.Lock()
 		ringInitialized = true

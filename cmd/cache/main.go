@@ -10,9 +10,6 @@ import (
 	"time"
 )
 
-// logger
-var logger = log.New(os.Stderr, "[CACHE SERVER]: ", log.Ltime)
-
 const Capacity = 100
 const ConfigIP = "http://localhost:8080"
 
@@ -20,7 +17,7 @@ func main() {
 
 	port := os.Args[1] // port number to listen to will be a command line arg
 
-	logger.Printf("Started up cache server with port %s\n", port)
+	log.Printf("Started up cache server with port %s\n", port)
 
 	node := node.NewNode(Capacity) // initialize new cache node
 
@@ -61,6 +58,6 @@ func heartbeat(port string) {
 		if err != nil {
 			panic(err)
 		}
-		logger.Printf("sent heartbeat from port %s", port)
+		// log.Printf("sent heartbeat from port %s", port)
 	}
 }

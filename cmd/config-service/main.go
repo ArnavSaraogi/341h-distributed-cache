@@ -6,13 +6,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 )
-
-// logger
-var logger = log.New(os.Stderr, "[CONFIG SERVICE]: ", log.Ltime)
 
 // HELPERS
 func getAddr(r *http.Request) string {
@@ -34,7 +30,7 @@ func handleCacheStart(w http.ResponseWriter, r *http.Request) {
 	ips = append(ips, addr)
 	mutex.Unlock()
 
-	logger.Printf("Added IP %s in cache IP list\n", addr)
+	log.Printf("Added IP %s in cache IP list\n", addr)
 }
 
 var ips []string
@@ -47,7 +43,7 @@ func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	- update timestamp on heartbeat
 	*/
 	addr := getAddr(r)
-	logger.Printf("Heartbeat from IP %s\n", addr)
+	log.Printf("Heartbeat from IP %s\n", addr)
 }
 
 // for /ips -- returns list of cache ips
@@ -55,12 +51,12 @@ func clientHandler(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	json.NewEncoder(w).Encode(ips)
 	mutex.Unlock()
-	logger.Printf("Sent IP list to client\n")
+	log.Printf("Sent IP list to client\n")
 }
 
 // ENTRY
 func main() {
-	logger.Printf("Started up config service\n")
+	log.Printf("Started up config service\n")
 
 	http.HandleFunc("/init", handleCacheStart)
 	http.HandleFunc("/heartbeat", handleHeartBeat)

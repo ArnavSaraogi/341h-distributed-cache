@@ -25,9 +25,6 @@ func init() {
 	godotenv.Load() // loads .env automatically
 }
 
-// logger
-var logger = log.New(os.Stderr, "[CACHE SERVER]: ", log.Ltime)
-
 type CacheNode struct {
 	cache *lru.Cache
 }
@@ -71,7 +68,7 @@ func (node *CacheNode) HandleConnection(conn net.Conn) {
 		conn.Write([]byte(response))
 	}
 
-	logger.Printf("Handled request %s", cmd)
+	log.Printf("Handled request %s", cmd)
 }
 
 // handle a PUT
