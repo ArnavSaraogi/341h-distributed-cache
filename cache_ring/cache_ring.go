@@ -78,7 +78,7 @@ func (ring *CacheRing) FindCache(key string) string {
 	cache_ip := ring.cache_ips[targ_idx]
 	ring.mtx.Unlock()
 
-	log.Printf("Key %s has hash %d, going in cache with ip %s and hash %d", key, hashed_key, ring.cache_ips[targ_idx], ring.cache_hashes[targ_idx])
+	// log.Printf("Key %s has hash %d, going in cache with ip %s and hash %d", key, hashed_key, ring.cache_ips[targ_idx], ring.cache_hashes[targ_idx])
 
 	return cache_ip
 }

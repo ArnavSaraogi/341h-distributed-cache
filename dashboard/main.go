@@ -27,9 +27,9 @@ type Process struct {
 	Port    string         `json:"port,omitempty"`
 	Cmd     *exec.Cmd      `json:"-"`
 	Stdin   io.WriteCloser `json:"-"`
-	LogCh   chan string     `json:"-"`
-	Done    chan struct{}   `json:"-"`
-	clients []chan string   // SSE subscribers
+	LogCh   chan string    `json:"-"`
+	Done    chan struct{}  `json:"-"`
+	clients []chan string  // SSE subscribers
 	mu      sync.Mutex
 }
 

@@ -21,6 +21,7 @@ var ringMutex sync.Mutex
 var ringCv = sync.NewCond(&ringMutex)
 
 func main() {
+	log.SetFlags(log.Ltime)
 	port := os.Args[1] // port number to listen on
 
 	log.Printf("Started up cache client on port %s\n", port)
@@ -38,12 +39,9 @@ func main() {
 	}
 	ringCv.L.Unlock()
 
-	ring.PrintCachesIPsAndHashes()
-
 	// HTTP server for receiving commands
 	http.HandleFunc("/command", handleCommand)
 
-	log.Printf("Listening for commands on port %s\n", port)
 	http.ListenAndServe(":"+port, nil)
 }
 

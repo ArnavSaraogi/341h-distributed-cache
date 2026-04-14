@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
             background: #262626;
             color: #BCBCBC;
             height: 100vh;
@@ -34,8 +34,8 @@
 
         .btn-stop-all {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 40px;
+            right: 40px;
             z-index: 100;
             border-color: #AF5F5F;
             color: #AF5F5F;
@@ -145,6 +145,15 @@
         }
         .panel-stop:hover { background: #AF5F5F; color: #FFFFFF; }
 
+        .panel-delete {
+            padding: 3px 10px;
+            font-size: 11px;
+            border-color: #444444;
+            color: #6C6C6C;
+            cursor: pointer;
+        }
+        .panel-delete:hover { background: #AF5F5F; color: #FFFFFF; border-color: #AF5F5F; }
+
         /* Client command bar inside panel */
         .panel-command-bar {
             display: flex;
@@ -197,7 +206,7 @@
     </style>
 </head>
 <body>
-    <button class="btn-stop-all" onclick="stopAll()">Stop All</button>
+    <button class="btn-stop-all" id="stopAllBtn" onclick="handleStopAll()">Stop All</button>
     <div class="main-grid" id="mainGrid">
         <div class="section" id="config-section" style="flex: 1;">
             <div class="section-header">
@@ -328,9 +337,21 @@
             }
         }
 
-        async function stopAll() {
+        async function handleStopAll() {
+            const btn = document.getElementById('stopAllBtn');
+            if (btn.textContent === 'Clear All') {
+                // Remove all panels
+                for (const name of Object.keys(panels)) {
+                    removePanel(name);
+                }
+                // Clear config logs
+                document.getElementById('config-logs').innerHTML = '';
+                btn.textContent = 'Stop All';
+                return;
+            }
             try {
                 await fetch('/api/stop-all', {method: 'POST'});
+                btn.textContent = 'Clear All';
             } catch (e) {
                 alert('Failed to stop all: ' + e.message);
             }
@@ -376,7 +397,7 @@
             panel.innerHTML = `
                 <div class="panel-header">
                     <span class="panel-title">${label}</span>
-                    <button class="panel-stop" onclick="stopProcess('${name}')">Stop</button>
+                    <button class="panel-stop" id="stopbtn-${name}" onclick="stopProcess('${name}')">Stop</button>
                 </div>
                 ${commandBar}
                 <div class="log-container" id="logs-${name}"></div>
@@ -403,6 +424,12 @@
                     line.className += ' error';
                 } else if (text.includes('[process exited]')) {
                     line.className += ' error';
+                    const stopBtn = document.getElementById('stopbtn-' + name);
+                    if (stopBtn) {
+                        stopBtn.className = 'panel-delete';
+                        stopBtn.textContent = 'Clear';
+                        stopBtn.onclick = () => removePanel(name);
+                    }
                 } else if (text.includes('Started') || text.includes('Added') || text.includes('Sent') || text.includes('Listening')) {
                     line.className += ' info';
                 } else {
@@ -422,6 +449,15 @@
             };
 
             panels[name] = { es, panel };
+        }
+
+        function removePanel(name) {
+            const p = panels[name];
+            if (p) {
+                if (p.es) p.es.close();
+                p.panel.remove();
+                delete panels[name];
+            }
         }
 
         async function sendCommand(clientName) {

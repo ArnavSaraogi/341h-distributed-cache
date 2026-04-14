@@ -56,6 +56,7 @@ func clientHandler(w http.ResponseWriter, r *http.Request) {
 
 // ENTRY
 func main() {
+	log.SetFlags(log.Ltime)
 	log.Printf("Started up config service\n")
 
 	http.HandleFunc("/init", handleCacheStart)

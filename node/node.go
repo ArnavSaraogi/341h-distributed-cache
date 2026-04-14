@@ -23,6 +23,7 @@ import (
 
 func init() {
 	godotenv.Load() // loads .env automatically
+	log.SetFlags(log.Ltime)
 }
 
 type CacheNode struct {

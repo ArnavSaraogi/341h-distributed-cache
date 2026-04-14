@@ -14,6 +14,7 @@ const Capacity = 100
 const ConfigIP = "http://localhost:8080"
 
 func main() {
+	log.SetFlags(log.Ltime)
 
 	port := os.Args[1] // port number to listen to will be a command line arg
 
