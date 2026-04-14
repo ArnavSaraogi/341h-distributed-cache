@@ -1,1 +1,1 @@
-This directory is vibecoded, mostly meant for demoing in a clean way so we didn't want to waste time on it.
+This directory is vibecoded, just meant for demoing in a clean way and easier debugging.
