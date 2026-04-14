@@ -24,7 +24,9 @@ var ringMutex sync.Mutex
 var ringCv = sync.NewCond(&ringMutex)
 
 func main() {
-	logger.Printf("Started up cache client\n")
+	port := os.Args[1] // port number to listen on
+
+	logger.Printf("Started up cache client on port %s\n", port)
 
 	ring = cache_ring.NewRing() // thread safe ring for consistent hashing
 
@@ -41,44 +43,66 @@ func main() {
 
 	ring.PrintCachesIPsAndHashes()
 
-	// requests
-	requests := []string{"GET jayleen",
-		"GET sanjiv",
-		"GET jesse",
-		"GET aisha",
-		"GET amara",
-		"GET andre",
-		"GET arnav",
-		"GET mikey",
-		"GET yuki",
+	// HTTP server for receiving commands
+	http.HandleFunc("/command", handleCommand)
+
+	logger.Printf("Listening for commands on port %s\n", port)
+	http.ListenAndServe(":"+port, nil)
+}
+
+// handleCommand accepts a command via HTTP POST and routes it to the correct cache node
+func handleCommand(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "POST only", http.StatusMethodNotAllowed)
+		return
 	}
 
-	// sending requests to respective caches
-	for _, request := range requests {
-		start := time.Now()
-
-		ip := ring.FindCache(request)
-		logger.Printf("Sending request '%s' to ip %s\n", request, ip)
-
-		conn, err := net.Dial("tcp", ip)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		_, err = conn.Write([]byte(request))
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		response := make([]byte, 1024)
-		n, err := conn.Read(response)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		logger.Printf("Got response '%s' from ip %s (took %v)\n", string(response[:n]), ip, time.Since(start))
-
-		conn.Close()
+	var req struct {
+		Command string `json:"command"`
 	}
+	json.NewDecoder(r.Body).Decode(&req)
+
+	if req.Command == "" {
+		http.Error(w, "command required", http.StatusBadRequest)
+		return
+	}
+
+	start := time.Now()
+
+	ip := ring.FindCache(req.Command)
+	logger.Printf("Sending request '%s' to ip %s\n", req.Command, ip)
+
+	conn, err := net.Dial("tcp", ip)
+	if err != nil {
+		logger.Printf("Failed to connect to %s: %v\n", ip, err)
+		http.Error(w, "failed to connect to cache node "+ip+": "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer conn.Close()
+
+	_, err = conn.Write([]byte(req.Command))
+	if err != nil {
+		logger.Printf("Failed to send to %s: %v\n", ip, err)
+		http.Error(w, "failed to send command: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := make([]byte, 4096)
+	n, err := conn.Read(response)
+	if err != nil {
+		logger.Printf("Failed to read from %s: %v\n", ip, err)
+		http.Error(w, "failed to read response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	elapsed := time.Since(start)
+	logger.Printf("Got response '%s' from ip %s (took %v)\n", string(response[:n]), ip, elapsed)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"target":   ip,
+		"response": string(response[:n]),
+		"command":  req.Command,
+	})
 }
 
 // thread that periodically gets IP list from config service

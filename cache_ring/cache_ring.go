@@ -83,7 +83,7 @@ func (ring *CacheRing) FindCache(key string) string {
 	return cache_ip
 }
 
-/* does binary search to find the nearest cache with hash <= the key hash*/
+/* does binary search to find the nearest cache with hash <= key hash*/
 func (ring *CacheRing) binSearch(hashed_key uint32) int {
 	l := 0
 	r := len(ring.cache_hashes)
