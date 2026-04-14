@@ -1,11 +1,12 @@
 package cache_ring
 
 import (
-	"hash/fnv"
 	"log"
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type CacheRing struct {
@@ -106,9 +107,7 @@ func (ring *CacheRing) binSearch(hashed_key uint32) int {
 
 /* hashes IPs and request keys */
 func hashIP(s string) uint32 {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(s)) // write to buffer
-	return h.Sum32()
+	return uint32(xxhash.Sum64String(s))
 }
 
 /* debug print to see caches and cache ips */
