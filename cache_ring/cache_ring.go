@@ -2,6 +2,7 @@ package cache_ring
 
 import (
 	"hash/fnv"
+	"log"
 	"slices"
 	"strings"
 	"sync"
@@ -13,7 +14,7 @@ type CacheRing struct {
 	mtx          sync.Mutex
 }
 
-// create empty ring
+/* create empty ring */
 func NewRing() *CacheRing {
 	return &CacheRing{
 		cache_hashes: []uint32{},
@@ -21,9 +22,7 @@ func NewRing() *CacheRing {
 	}
 }
 
-// TODO IF TIME: CREATE CONSTRUCTOR THAT TAKES A LIST
-
-// reset ring
+/* reset ring */
 func (ring *CacheRing) ClearRing() {
 	ring.mtx.Lock()
 	ring.cache_hashes = nil
@@ -31,7 +30,7 @@ func (ring *CacheRing) ClearRing() {
 	ring.mtx.Unlock()
 }
 
-// add cache to ring
+/* add cache to ring */
 func (ring *CacheRing) AddIP(ip string) {
 	hash := hashIP(ip)
 
@@ -44,10 +43,11 @@ func (ring *CacheRing) AddIP(ip string) {
 	}
 	ring.cache_hashes = slices.Insert(ring.cache_hashes, i, hash)
 	ring.cache_ips = slices.Insert(ring.cache_ips, i, ip)
+
 	ring.mtx.Unlock()
 }
 
-// remove specified cache from ring
+/* remove specified cache from ring */
 func (ring *CacheRing) RemoveIP(ip string) {
 	ring.mtx.Lock()
 	i := 0
@@ -61,9 +61,15 @@ func (ring *CacheRing) RemoveIP(ip string) {
 	ring.mtx.Unlock()
 }
 
-// figure out which cache to put it in
+/* figure out which cache the key goes in */
 func (ring *CacheRing) FindCache(key string) string {
-	key = strings.Fields(key)[1]
+
+	// handle case where no caches
+	if len(ring.cache_hashes) == 0 {
+		log.Fatal("No caches in cache ring")
+	}
+
+	key = strings.Fields(key)[1] // gets the key from the GET / PUT request (ie GET Jayleen -> Jayleen)
 	hashed_key := hashIP(key)
 
 	ring.mtx.Lock()
@@ -71,35 +77,43 @@ func (ring *CacheRing) FindCache(key string) string {
 	cache_ip := ring.cache_ips[targ_idx]
 	ring.mtx.Unlock()
 
+	log.Printf("Key %s has hash %d, going in cache with ip %s and hash %d", key, hashed_key, ring.cache_ips[targ_idx], ring.cache_hashes[targ_idx])
+
 	return cache_ip
 }
 
+/* does binary search to find the nearest cache with hash <= the key hash*/
 func (ring *CacheRing) binSearch(hashed_key uint32) int {
-	// edge case if hashed_key is smallest
-	if hashed_key < slices.Min(ring.cache_hashes) {
-		return len(ring.cache_hashes) - 1
-	}
 	l := 0
-	r := len(ring.cache_hashes) - 1
-	idx := l
-	for l <= r {
-		mid := l + (r-l)/2
-		if ring.cache_hashes[mid] == hashed_key {
-			idx = mid
-			return idx
-		}
+	r := len(ring.cache_hashes)
+
+	for l < r {
+		mid := (l + r) / 2
 		if ring.cache_hashes[mid] < hashed_key {
 			l = mid + 1
 		} else {
-			r = mid - 1
+			r = mid
 		}
 	}
-	idx = l - 1
-	return max(idx, 0)
+
+	// wrap around
+	if l == len(ring.cache_hashes) {
+		return 0
+	}
+
+	return l
 }
 
+/* hashes IPs and request keys */
 func hashIP(s string) uint32 {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(s)) // write to buffer
 	return h.Sum32()
+}
+
+/* debug print to see caches and cache ips */
+func (ring *CacheRing) PrintCachesIPsAndHashes() {
+	for i := 0; i < len(ring.cache_hashes); i++ {
+		log.Printf("Cache IP: %s\nCache Hash: %d", ring.cache_ips[i], ring.cache_hashes[i])
+	}
 }

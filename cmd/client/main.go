@@ -39,8 +39,19 @@ func main() {
 	}
 	ringCv.L.Unlock()
 
+	ring.PrintCachesIPsAndHashes()
+
 	// requests
-	requests := []string{"GET jayleen", "GET sanjiv", "GET jesse", "GET jayleen"}
+	requests := []string{"GET jayleen",
+		"GET sanjiv",
+		"GET jesse",
+		"GET aisha",
+		"GET amara",
+		"GET andre",
+		"GET arnav",
+		"GET mikey",
+		"GET yuki",
+	}
 
 	// sending requests to respective caches
 	for _, request := range requests {
@@ -72,10 +83,9 @@ func main() {
 
 // thread that periodically gets IP list from config service
 func getIps() {
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
 
-	for range ticker.C {
+	// function to fetch the ips
+	fetch := func() {
 		ips := []string{}
 
 		// get updated list from config service
@@ -104,5 +114,14 @@ func getIps() {
 		ringInitialized = true
 		ringCv.Broadcast()
 		ringCv.L.Unlock()
+	}
+
+	fetch() // fetch ips immediately
+
+	// periodic loop that fetches ips every 10 seconds
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		fetch()
 	}
 }
