@@ -6,9 +6,19 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
+	"time"
 )
+
+// ip checker maps ip -> last seen timestamp
+var health_status_map = map[string]time.Time{}
+
+var mu sync.Mutex
+
+// logger
+var logger = log.New(os.Stderr, "[CONFIG SERVICE]: ", log.Ltime)
 
 // HELPERS
 func getAddr(r *http.Request) string {
@@ -42,8 +52,12 @@ func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	- keep a timer/timestamp for each ip's last heartbeat
 	- update timestamp on heartbeat
 	*/
+	mu.Lock()
 	addr := getAddr(r)
-	log.Printf("Heartbeat from IP %s\n", addr)
+	hit := time.Now()
+	health_status_map[addr] = hit
+	logger.Printf("Heartbeat from IP %s\n", addr)
+	mu.Lock()
 }
 
 // for /ips -- returns list of cache ips
@@ -64,4 +78,19 @@ func main() {
 	http.HandleFunc("/ips", clientHandler)
 
 	http.ListenAndServe(":8080", nil)
+
+	go checkHealthMap()
+}
+
+func checkHealthMap() {
+
+	/*go through map and check if any addr has a request > 10 seconds ago
+	IF YES:
+		1. Mark cache as dead --> tell cache che client the cache has died
+		2. Cache client should update the ring
+		3. When updating ring --> redistribute data from dead cache to next availble cache greedily
+
+
+	*/
+
 }
