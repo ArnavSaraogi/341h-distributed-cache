@@ -57,7 +57,7 @@ func handleHeartBeat(w http.ResponseWriter, r *http.Request) {
 	hit := time.Now()
 	health_status_map[addr] = hit
 	logger.Printf("Heartbeat from IP %s\n", addr)
-	mu.Lock()
+	mu.Unlock()
 }
 
 // for /ips -- returns list of cache ips
@@ -88,9 +88,18 @@ func checkHealthMap() {
 	IF YES:
 		1. Mark cache as dead --> tell cache che client the cache has died
 		2. Cache client should update the ring
-		3. When updating ring --> redistribute data from dead cache to next availble cache greedily
-
-
 	*/
-
+	mu.Lock()
+	for addr, hit_time := range health_status_map {
+		if hit_time.Before(time.Now().Add(-10 * time.Second)) {
+			for idx := range ips {
+				if ips[idx] == addr {
+					ips[idx] = ips[len(ips)-1] // Copy last element to index i
+					ips = ips[:len(ips)-1]
+				}
+			}
+		}
+	}
+	mu.Unlock()
+	time.Sleep(time.Second * 10)
 }
