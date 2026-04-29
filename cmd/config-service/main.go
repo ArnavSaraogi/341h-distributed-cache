@@ -91,16 +91,17 @@ func checkHealthMap() {
 	*/
 	mu.Lock()
 	defer mu.Unlock()
+	now := time.Now()
 	for addr, hit_time := range health_status_map {
-		if hit_time.Before(time.Now().Add(-10 * time.Second)) {
+		if hit_time.Before(now.Add(-10 * time.Second)) {
 			for idx := range ips {
 				if ips[idx] == addr {
 					ips[idx] = ips[len(ips)-1] // Copy last element to index i
 					ips = ips[:len(ips)-1]
+					break
 				}
 			}
 		}
 	}
-	mu.Unlock()
 	time.Sleep(time.Second * 10)
 }
