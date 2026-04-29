@@ -90,6 +90,7 @@ func checkHealthMap() {
 		2. Cache client should update the ring
 	*/
 	mu.Lock()
+	defer mu.Unlock()
 	for addr, hit_time := range health_status_map {
 		if hit_time.Before(time.Now().Add(-10 * time.Second)) {
 			for idx := range ips {
