@@ -76,10 +76,11 @@ func main() {
 }
 
 const heartbeatTimeout = 10 * time.Second
+const checkInterval = 2500 * time.Millisecond
 
 func checkHealthMap() {
 	for {
-		time.Sleep(heartbeatTimeout)
+		time.Sleep(checkInterval)
 
 		mutex.Lock()
 		now := time.Now()
