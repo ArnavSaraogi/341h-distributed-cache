@@ -17,7 +17,7 @@ We're creating a distributed cache in Go. Caching is important when you want to 
 
 1. Synchronization -- made cache and cache ring data strutures thread safe to support multiple threads reading/writing to/from them
 2. Networking -- handled TCP connections between cache clients and servers; wrote distributed applications communicating across a network
-3. Processes -- simulating cacche clients and cache nodes through processes on one computer (for now)
+3. Processes -- simulating cache clients and cache nodes through processes on one computer (for now)
 4. Pipes -- used pipes to display logging in the UI
 
 ## Challenges We Faced
