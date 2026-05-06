@@ -12,6 +12,7 @@ import (
 
 const Capacity = 100
 const ConfigIP = "http://localhost:8080"
+const HeartbeatInterval = 2500 * time.Millisecond
 
 func main() {
 	log.SetFlags(log.Ltime)
@@ -52,7 +53,7 @@ func main() {
 
 // heartbeating to config service
 func heartbeat(port string) {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(HeartbeatInterval)
 	defer ticker.Stop()
 	for range ticker.C {
 		_, err := http.Post(ConfigIP+"/heartbeat", "text/plain", strings.NewReader(port))
